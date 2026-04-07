@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter/foundation.dart';
+import 'package:device_preview/device_preview.dart';
 import 'controllers/auth_controller.dart';
 import 'controllers/propriedade_controller.dart';
 import 'controllers/safra_controller.dart';
@@ -18,14 +20,17 @@ import 'views/especificas/colheita_view.dart';
 
 void main() {
   runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => AuthController()),
-        ChangeNotifierProvider(create: (_) => PropriedadeController()),
-        ChangeNotifierProvider(create: (_) => SafraController()),
-        ChangeNotifierProvider(create: (_) => InsumoController()),
-      ],
-      child: const RuralApp(),
+    DevicePreview(
+      enabled: !kReleaseMode, 
+      builder: (context) => MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (_) => AuthController()),
+          ChangeNotifierProvider(create: (_) => PropriedadeController()),
+          ChangeNotifierProvider(create: (_) => SafraController()),
+          ChangeNotifierProvider(create: (_) => InsumoController()),
+        ],
+        child: const RuralApp(),
+      ),
     ),
   );
 }
@@ -35,31 +40,24 @@ class RuralApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    
     const Color primaryGreen = Color(0xFF0A747C);
 
     return MaterialApp(
-      title: 'Gestão Rural MVC',
+      useInheritedMediaQuery: true,
+      locale: DevicePreview.locale(context),
+      builder: DevicePreview.appBuilder,
+
+      title: 'Gestão Rural UNAERP',
       debugShowCheckedModeBanner: false,
-      
-      
       theme: ThemeData(
         useMaterial3: true,
         primaryColor: primaryGreen,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: primaryGreen,
-          primary: primaryGreen,
-          secondary: const Color(0xFFD4AF37), 
-        ),
-        
+        colorScheme: ColorScheme.fromSeed(seedColor: primaryGreen),
         appBarTheme: const AppBarTheme(
           backgroundColor: primaryGreen,
           foregroundColor: Colors.white,
-          elevation: 0,
         ),
       ),
-
-      
       initialRoute: '/',
       routes: {
         '/': (context) => const LoginView(),
@@ -67,8 +65,6 @@ class RuralApp extends StatelessWidget {
         '/recuperar': (context) => const RecuperacaoView(),
         '/home': (context) => const HomeView(),
         '/sobre': (context) => const SobreView(),
-        
-        
         '/propriedades': (context) => const PropriedadesView(),
         '/safras': (context) => const SafrasListView(),
         '/cadastro_safra': (context) => const CadastroSafraView(),
