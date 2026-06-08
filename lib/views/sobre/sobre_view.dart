@@ -70,7 +70,7 @@ class SobreView extends StatelessWidget {
                 ]),
                 TableRow(children: [
                   Padding(padding: EdgeInsets.symmetric(vertical: 4), child: Text("Professor:", style: TextStyle(fontWeight: FontWeight.bold))),
-                  Padding(padding: EdgeInsets.symmetric(vertical: 4), child: Text("Dr. Edilson Carlos Caritá")),
+                  Padding(padding: EdgeInsets.symmetric(vertical: 4), child: Text("Dr. Rodrigo de Oliveira Plotze")),
                 ]),
                 TableRow(children: [
                   Padding(padding: EdgeInsets.symmetric(vertical: 4), child: Text("Curso:", style: TextStyle(fontWeight: FontWeight.bold))),

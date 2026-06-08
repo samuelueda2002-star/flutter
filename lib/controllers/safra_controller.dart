@@ -1,20 +1,51 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
-class SafraController extends ChangeNotifier {
+class SafrasFirestoreController {
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+
   
-  final List<Map<String, String>> _safras = [
-    {'talhao': 'Talhão 01', 'cultura': 'Soja', 'status': 'Em Crescimento'},
-    {'talhao': 'Talhão 05', 'cultura': 'Milho', 'status': 'Pronto para Colheita'},
-  ];
+  Future<bool> adicionarSafra({
+    required String talhao,
+    required String cultura,
+    required String status,
+    required double area,
+    required String observacoes,
+  }) async {
+    try {
+      String uid = _auth.currentUser!.uid; 
+      await _firestore.collection('safras').add({
+        'userId': uid, // Campo de controle de dono
+        'talhao': talhao,
+        'cultura': cultura,
+        'status': status,
+        'area': area,
+        'observacoes': observacoes,
+        'dataCriacao': FieldValue.serverTimestamp(),
+      });
+      return true; 
+    } catch (e) {
+      return false; 
+    }
+  }
 
-  List<Map<String, String>> get safras => _safras;
+  
+  Future<bool> atualizarSafra(String docId, Map<String, dynamic> dadosAtualizados) async {
+    try {
+      await _firestore.collection('safras').doc(docId).update(dadosAtualizados);
+      return true;
+    } catch (e) {
+      return false; 
+    }
+  }
 
-  void cadastrarSafra(String talhao, String cultura) {
-    _safras.add({
-      'talhao': talhao,
-      'cultura': cultura,
-      'status': 'Planejado',
-    });
-    notifyListeners(); 
+ Stream<QuerySnapshot> listarSafrasDoUsuario() {
+    String uid = _auth.currentUser!.uid;
+    return _firestore
+        .collection('safras')
+        .where('userId', ==: uid) // Filtro isolado
+        .snapshots();
   }
 }
