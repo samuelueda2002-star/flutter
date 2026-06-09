@@ -33,38 +33,42 @@ class _CadastroViewState extends State<CadastroView> {
 
   // Executa todas as validações locais antes de enviar ao Firebase
   bool _validarFormulario() {
-    final nome = _nomeController.text.trim();
-    final email = _emailController.text.trim();
-    final telefone = _telefoneController.text.trim();
-    final senha = _senhaController.text;
-    final confirmarSenha = _confirmarSenhaController.text;
+  final nome = _nomeController.text.trim();
+  final email = _emailController.text.trim();
+  final telefone = _telefoneController.text.trim();
+  final senha = _senhaController.text;
+  final confirmarSenha = _confirmarSenhaController.text;
 
-    // 1. Verificar se todos os campos obrigatórios foram preenchidos
-    if (nome.isEmpty || email.isEmpty || telefone.isEmpty || senha.isEmpty || confirmarSenha.isEmpty) {
-      _exibirMensagem('Todos os campos são obrigatórios.');
-      return false;
-    }
+  if (nome.isEmpty || email.isEmpty || telefone.isEmpty || senha.isEmpty) {
+    _exibirMensagem('Todos os campos são obrigatórios.');
+    return false;
+  }
 
-    // 2. Validar se o e-mail informado possui formato válido
-    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
-    if (!emailRegex.hasMatch(email)) {
-      _exibirMensagem('Por favor, insira um e-mail válido (exemplo@dominio.com).');
-      return false;
-    }
+  // Validação de E-mail
+  final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+  if (!emailRegex.hasMatch(email)) {
+    _exibirMensagem('Por favor, insira um e-mail válido.');
+    return false;
+  }
 
-    // 3. Verificar se os campos senha e confirmação de senha possuem valores iguais
-    if (senha != confirmarSenha) {
-      _exibirMensagem('A senha e a confirmação de senha não coincidem.');
-      return false;
-    }
+  // REFAZENDO A VALIDAÇÃO DA SENHA SEGUNDO OS CRITÉRIOS DO REQUISITO:
+  // Exige: Mínimo 6 caracteres, 1 Letra Maiúscula, 1 Minúscula, 1 Número e 1 Caractere Especial (@$!%*?&)
+  final senhaRegex = RegExp(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$');
+  
+  if (!senhaRegex.hasMatch(senha)) {
+    _exibirMensagem(
+      'Senha fraca! A senha deve conter no mínimo 6 caracteres, incluindo letras maiúsculas, minúsculas, números e caracteres especiais.',
+      ehErro: true
+    );
+    return false;
+  }
 
-    // Validação adicional de segurança (mínimo exigido pelo Firebase Auth)
-    if (senha.length < 6) {
-      _exibirMensagem('A senha deve conter pelo menos 6 caracteres.');
-      return false;
-    }
+  if (senha != confirmarSenha) {
+    _exibirMensagem('As senhas não coincidem.');
+    return false;
+  }
 
-    return true;
+  return true;
   }
 
   void _executarCadastro() async {
