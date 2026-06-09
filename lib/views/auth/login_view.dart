@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import '../../controllers/auth_controller.dart';
+import '../home/home_view.dart';
+import 'cadastro_view.dart';
+import 'recuperacao_view.dart';
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
@@ -8,97 +12,118 @@ class LoginView extends StatefulWidget {
 }
 
 class _LoginViewState extends State<LoginView> {
-  final _formKey = GlobalKey<FormState>();
-  
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _senhaController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _senhaController = TextEditingController();
+  final AuthController _authController = AuthController();
+  bool _isLoading = false;
 
-  void _tentarLogin() {
-    if (_formKey.currentState!.validate()) {
-      Navigator.pushReplacementNamed(context, '/home');
+  void _fazerLogin() async {
+    if (_emailController.text.isEmpty || _senhaController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Preencha todos os campos.')),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    String? erro = await _authController.login(
+      _emailController.text,
+      _senhaController.text,
+    );
+
+    setState(() => _isLoading = false);
+
+    if (erro == null) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const HomeView()),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(erro), backgroundColor: Colors.red),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const SizedBox(height: 80),
-              const Icon(Icons.agriculture, size: 100, color: Color(0xFF0A747C)),
-              const Text(
-                "Gestão Rural",
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF0A747C)),
+      appBar: AppBar(title: const Text('Login')),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // Ícone nativo de Agricultura no lugar do logotipo do Flutter
+            const Icon(
+              Icons.agriculture,
+              size: 90,
+              color: Colors.green, // Cor verde para combinar com o tema
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              'Agro App',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.green,
               ),
-              const SizedBox(height: 40),
-              
-              TextFormField(
-                controller: _emailController,
-                decoration: const InputDecoration(
-                  labelText: 'E-mail',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.email),
-                ),
-                keyboardType: TextInputType.emailAddress,
-                validator: (value) {
-                  if (value == null || value.isEmpty) return 'Informe o e-mail';
-                  if (!value.contains('@')) return 'E-mail inválido';
-                  return null;
-                },
+            ),
+            const SizedBox(height: 32),
+            
+            TextField(
+              controller: _emailController,
+              decoration: const InputDecoration(
+                labelText: 'E-mail',
+                border: OutlineInputBorder(),
               ),
-              const SizedBox(height: 16),
-              
-              TextFormField(
-                controller: _senhaController,
-                decoration: const InputDecoration(
-                  labelText: 'Senha',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.lock),
-                ),
-                obscureText: true,
-                validator: (value) {
-                  if (value == null || value.isEmpty) return 'Informe a senha';
-                  if (value.length < 6) return 'A senha deve ter no mínimo 6 caracteres';
-                  return null;
-                },
+              keyboardType: TextInputType.emailAddress,
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _senhaController,
+              decoration: const InputDecoration(
+                labelText: 'Senha',
+                border: OutlineInputBorder(),
               ),
-              const SizedBox(height: 24),
-              
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: _tentarLogin,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF0A747C),
-                    foregroundColor: Colors.white,
+              obscureText: true,
+            ),
+            const SizedBox(height: 24),
+            
+            _isLoading 
+              ? const CircularProgressIndicator()
+              : SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: ElevatedButton(
+                    onPressed: _fazerLogin,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                    ),
+                    child: const Text(
+                      'Entrar',
+                      style: TextStyle(color: Colors.white, fontSize: 16),
+                    ),
                   ),
-                  child: const Text("Entrar", style: TextStyle(fontSize: 18)),
                 ),
+                
+            const SizedBox(height: 16),
+            TextButton(
+              onPressed: () => Navigator.push(
+                context, 
+                MaterialPageRoute(builder: (_) => const RecuperacaoView())
               ),
-              
-              const SizedBox(height: 16),
-              
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  TextButton(
-                    onPressed: () => Navigator.pushNamed(context, '/cadastro'),
-                    child: const Text("Criar Conta"),
-                  ),
-                  TextButton(
-                    onPressed: () => Navigator.pushNamed(context, '/recuperar'),
-                    child: const Text("Esqueceu a senha?"),
-                  ),
-                ],
+              child: const Text('Esqueci minha senha'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.push(
+                context, 
+                MaterialPageRoute(builder: (_) => const CadastroView())
               ),
-            ],
-          ),
+              child: const Text('Criar uma conta'),
+            ),
+          ],
         ),
       ),
     );

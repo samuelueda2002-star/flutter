@@ -45,7 +45,7 @@ class SafrasFirestoreController {
     String uid = _auth.currentUser!.uid;
     return _firestore
         .collection('safras')
-        .where('userId', ==: uid) // Filtro isolado
+     //   .where('userId', ==: uid) // Filtro isolado
         .snapshots();
   }
 }

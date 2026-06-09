@@ -1,77 +1,44 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:flutter/foundation.dart';
-import 'package:device_preview/device_preview.dart';
-import 'controllers/auth_controller.dart';
-import 'controllers/propriedade_controller.dart';
-import 'controllers/safra_controller.dart';
-import 'controllers/insumo_controller.dart';
-import 'views/auth/login_view.dart';
-import 'views/auth/cadastro_view.dart';
-import 'views/auth/recuperacao_view.dart';
-import 'views/home/home_view.dart';
-import 'views/sobre/sobre_view.dart';
-import 'views/especificas/propriedades_view.dart';
-import 'views/especificas/safras_list_view.dart';
-import 'views/especificas/cadastro_safra_view.dart';
-import 'views/especificas/insumos_view.dart';
-import 'views/especificas/despesas_view.dart';
-import 'views/especificas/colheita_view.dart';
+import 'package:flutter/foundation.dart'; // Importante para verificar se é modo de debug
+import 'package:firebase_core/firebase_core.dart';
+import 'package:device_preview/device_preview.dart'; // Import do preview
+import 'firebase_options.dart'; 
+import 'views/auth/login_view.dart'; 
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized(); 
+  
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  ); 
+  
+  // Envolvemos o runApp com o DevicePreview
   runApp(
     DevicePreview(
-      enabled: !kReleaseMode, 
-      builder: (context) => MultiProvider(
-        providers: [
-          ChangeNotifierProvider(create: (_) => AuthController()),
-          ChangeNotifierProvider(create: (_) => PropriedadeController()),
-          ChangeNotifierProvider(create: (_) => SafraController()),
-          ChangeNotifierProvider(create: (_) => InsumoController()),
-        ],
-        child: const RuralApp(),
-      ),
+      // O preview só ficará ativo enquanto você estiver desenvolvendo (debug).
+      // Quando gerar o app final para as lojas (release), ele some sozinho.
+      enabled: !kReleaseMode,
+      builder: (context) => const MyApp(),
     ),
   );
 }
 
-class RuralApp extends StatelessWidget {
-  const RuralApp({super.key});
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    const Color primaryGreen = Color(0xFF0A747C);
-
     return MaterialApp(
-      useInheritedMediaQuery: true,
+      // Adicionamos estas duas linhas para o preview controlar o tamanho e idioma
       locale: DevicePreview.locale(context),
       builder: DevicePreview.appBuilder,
-
-      title: 'Gestão Rural UNAERP',
-      debugShowCheckedModeBanner: false,
+      
+      title: 'App Agrícola',
       theme: ThemeData(
-        useMaterial3: true,
-        primaryColor: primaryGreen,
-        colorScheme: ColorScheme.fromSeed(seedColor: primaryGreen),
-        appBarTheme: const AppBarTheme(
-          backgroundColor: primaryGreen,
-          foregroundColor: Colors.white,
-        ),
+        primarySwatch: Colors.green,
       ),
-      initialRoute: '/',
-      routes: {
-        '/': (context) => const LoginView(),
-        '/cadastro': (context) => const CadastroView(),
-        '/recuperar': (context) => const RecuperacaoView(),
-        '/home': (context) => const HomeView(),
-        '/sobre': (context) => const SobreView(),
-        '/propriedades': (context) => const PropriedadesView(),
-        '/safras': (context) => const SafrasListView(),
-        '/cadastro_safra': (context) => const CadastroSafraView(),
-        '/insumos': (context) => const InsumosView(),
-        '/financeiro': (context) => const DespesasView(),
-        '/colheita': (context) => const ColheitaView(),
-      },
+      home: const LoginView(), 
+      debugShowCheckedModeBanner: false,
     );
   }
 }
