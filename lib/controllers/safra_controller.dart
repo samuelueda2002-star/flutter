@@ -1,51 +1,34 @@
-import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-class SafrasFirestoreController {
+class SafraController {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  
-  Future<bool> adicionarSafra({
+  Future<String?> adicionarSafra({
     required String talhao,
     required String cultura,
-    required String status,
     required double area,
-    required String observacoes,
+    required String status,
+    required String dataPlantio,
   }) async {
     try {
-      String uid = _auth.currentUser!.uid; 
+      // Garante a separação por usuário capturando o ID de quem está logado (RF003)
+      String uid = _auth.currentUser!.uid;
+
+      // Inserção na coleção "safras" com 6 campos (Atende a exigência de ter pelo menos 5)
       await _firestore.collection('safras').add({
-        'userId': uid, // Campo de controle de dono
+        'userId': uid, // Vincula o documento exclusivamente a este usuário
         'talhao': talhao,
         'cultura': cultura,
-        'status': status,
         'area': area,
-        'observacoes': observacoes,
-        'dataCriacao': FieldValue.serverTimestamp(),
+        'status': status,
+        'dataPlantio': dataPlantio,
+        'criadoEm': FieldValue.serverTimestamp(),
       });
-      return true; 
+      return null; // Sucesso
     } catch (e) {
-      return false; 
+      return 'Falha ao inserir safra: $e'; // Retorna o erro
     }
-  }
-
-  
-  Future<bool> atualizarSafra(String docId, Map<String, dynamic> dadosAtualizados) async {
-    try {
-      await _firestore.collection('safras').doc(docId).update(dadosAtualizados);
-      return true;
-    } catch (e) {
-      return false; 
-    }
-  }
-
- Stream<QuerySnapshot> listarSafrasDoUsuario() {
-    String uid = _auth.currentUser!.uid;
-    return _firestore
-        .collection('safras')
-     //   .where('userId', ==: uid) // Filtro isolado
-        .snapshots();
   }
 }
