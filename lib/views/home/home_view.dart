@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
-import '../../controllers/auth_controller.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_application_1/views/especificas/cadastro_propriedade_view.dart';
 import '../auth/login_view.dart';
 import '../especificas/safras_list_view.dart';
-import '../especificas/cadastro_propriedade_view.dart';
 import '../especificas/insumos_view.dart';
+import '../especificas/propriedade_view.dart'; // Nome do arquivo mapeado no projeto
 import '../especificas/despesas_view.dart';
 import '../especificas/colheita_view.dart';
+import '../especificas/mercado_view.dart';
 import '../sobre/sobre_view.dart';
 
 class HomeView extends StatefulWidget {
@@ -16,199 +18,209 @@ class HomeView extends StatefulWidget {
 }
 
 class _HomeViewState extends State<HomeView> {
-  final AuthController _authController = AuthController();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  // Função para executar o Logout com segurança
-  void _fazerLogout() async {
+  /// RF001: Realiza o encerramento da sessão com feedback e redirecionamento seguro
+  void _efetuarLogout() async {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Confirmar Saída'),
-        content: const Text('Deseja realmente terminar a sessão no aplicativo?'),
+        title: const Text("Encerrar Sessão"),
+        content: const Text("Deseja realmente sair da sua conta administrativa?"),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancelar'),
+            child: const Text("Cancelar"),
           ),
-          TextButton(
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             onPressed: () async {
               Navigator.pop(context); // Fecha o diálogo
-              await _authController.sair(); // Executa o logout no Firebase Auth
+              await _auth.signOut();  // Desconecta do Firebase Auth
               
               if (!mounted) return;
-              // Redireciona para a tela de login limpando o histórico de rotas
+              
+              // Remove todo o histórico de telas e joga o usuário para o Login
               Navigator.pushAndRemoveUntil(
                 context,
                 MaterialPageRoute(builder: (context) => const LoginView()),
                 (route) => false,
               );
             },
-            child: const Text('Sair', style: TextStyle(color: Colors.red)),
+            child: const Text("Sair", style: TextStyle(color: Colors.white)),
           ),
         ],
-      ),
-    );
-  }
-
-  // Widget auxiliar para construir os cartões do Dashboard de forma limpa
-  Widget _buildDashboardCard({
-    required String titulo,
-    required IconData icone,
-    required Color cor,
-    required VoidCallback onTap,
-  }) {
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: cor.withOpacity(0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(icone, size: 40, color: cor),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                titulo,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
-                ),
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    const Color primaryColor = Color(0xFF0A747C);
+    final String userEmail = _auth.currentUser?.email ?? 'Produtor Rural';
+
+    // Lista de módulos para renderizar os cards dinamicamente no painel
+    final List<Map<String, dynamic>> modulosHub = [
+      {
+        'titulo': 'Safras e Culturas',
+        'subtitulo': 'Gerenciar ciclos e talhões',
+        'icone': Icons.grass,
+        'cor': Colors.green,
+        'tela': const SafrasListView(), // Aponta para a listagem conectada ao Firestore
+      },
+      {
+        'titulo': 'Estoque de Insumos',
+        'subtitulo': 'Controle de NPK, defensivos e sementes',
+        'icone': Icons.inventory,
+        'cor': Colors.blueGrey,
+        'tela': const InsumosView(),
+      },
+      {
+        'titulo': 'Propriedades Rurais',
+        'subtitulo': 'Fazendas e glebas registradas',
+        'icone': Icons.landscape,
+        'cor': Colors.brown,
+        'tela': const PropriedadesView(),// Aponta para a PropriedadesView adaptada
+      },
+      {
+        'titulo': 'Fluxo de Despesas',
+        'subtitulo': 'Lançamentos financeiros operacionais',
+        'icone': Icons.trending_down,
+        'cor': Colors.redAccent,
+        'tela': const DespesasView(),
+      },
+      {
+        'titulo': 'Histórico de Colheitas',
+        'subtitulo': 'Pesagem e destino da produção',
+        'icone': Icons.agriculture,
+        'cor': Colors.orange,
+        'tela': const ColheitaView(),
+      },
+      {
+        'titulo': 'Mercado (API)',
+        'subtitulo': 'Cotações cambiais em tempo real',
+        'icone': Icons.analytics,
+        'cor': Colors.teal,
+        'tela': const MercadoView(), // Consumo da API Pública (RF007)
+      },
+    ];
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Agro App - Dashboard'),
-        backgroundColor: Colors.green,
+        title: const Text("AgroGestão Dashboard"),
+        backgroundColor: primaryColor,
         foregroundColor: Colors.white,
-        elevation: 2,
         actions: [
-          // Botão de Logout no canto superior direito
+          IconButton(
+            icon: const Icon(Icons.info_outline),
+            tooltip: 'Sobre o App',
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const SobreView()),
+            ),
+          ),
           IconButton(
             icon: const Icon(Icons.logout),
             tooltip: 'Sair da Conta',
-            onPressed: _fazerLogout,
+            onPressed: _efetuarLogout,
           ),
         ],
       ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Mensagem de boas-vindas simples
-              const Text(
-                'Bem-vindo ao Campo!',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.green,
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Banner de Boas-vindas contendo as credenciais da sessão ativa
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: primaryColor.withOpacity(0.08),
+              border: const Border(bottom: BorderSide(color: Colors.black12)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  "Olá, Bem-vindo de Volta!",
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: primaryColor),
                 ),
-              ),
-              const Text(
-                'Selecione uma das opções abaixo para gerir o seu negócio:',
-                style: TextStyle(fontSize: 14, color: Colors.grey),
-              ),
-              const SizedBox(height: 24),
-
-              // Grid que organiza todos os módulos dinamicamente
-              GridView.count(
-                crossAxisCount: 2, // 2 colunas
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(), // Grid rola junto com a Column
-                children: [
-                  // 1. Módulo de Safras
-                  _buildDashboardCard(
-                    titulo: 'Safras',
-                    icone: Icons.agriculture,
-                    cor: Colors.green,
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const SafrasListView()),
-                    ),
-                  ),
-
-                  // 2. Módulo de Propriedades
-                //  _buildDashboardCard(
-                //    titulo: 'Propriedades',
-                //    icone: Icons.landscape,
-                 //   cor: Colors.brown,
-                 //   onTap: () => Navigator.push(
-                    //  context,
-                    //  MaterialPageRoute(builder: (context) => const propriedades_view()),
-                //    )//,
-                //  ),
-
-                  // 3. Módulo de Insumos
-                  _buildDashboardCard(
-                    titulo: 'Insumos',
-                    icone: Icons.inventory_2,
-                    cor: Colors.blue,
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const InsumosView()),
-                    ),
-                  ),
-
-                  // 4. Módulo de Colheitas
-                  _buildDashboardCard(
-                    titulo: 'Colheitas',
-                    icone: Icons.shopping_basket,
-                    cor: Colors.orange,
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const ColheitaView()),
-                    ),
-                  ),
-
-                  // 5. Módulo de Despesas Financeiras
-                  _buildDashboardCard(
-                    titulo: 'Despesas',
-                    icone: Icons.attach_money,
-                    cor: Colors.red,
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const DespesasView()),
-                    ),
-                  ),
-
-                  // 6. Módulo Sobre o App
-                  _buildDashboardCard(
-                    titulo: 'Sobre',
-                    icone: Icons.info_outline,
-                    cor: Colors.teal,
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const SobreView()),
-                    ),
-                  ),
-                ],
-              ),
-            ],
+                const SizedBox(height: 4),
+                Text(
+                  "Acessado como: $userEmail",
+                  style: const TextStyle(fontSize: 14, color: Colors.black54),
+                ),
+              ],
+            ),
           ),
-        ),
+          
+          const Padding(
+            padding: EdgeInsets.only(left: 20, top: 20, bottom: 10),
+            child: Text(
+              "Painel de Controle Operacional",
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blueGrey),
+            ),
+          ),
+          
+          // Grade Modular Interativa (Grid do Hub Principal)
+          Expanded(
+            child: GridView.builder(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 14,
+                mainAxisSpacing: 14,
+                childAspectRatio: 1.1,
+              ),
+              itemCount: modulosHub.length,
+              itemBuilder: (context, index) {
+                final item = modulosHub[index];
+                
+                return Card(
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(16),
+                    onFocusChange: null,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => item['tela']),
+                      );
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          CircleAvatar(
+                            backgroundColor: item['cor'].withOpacity(0.12),
+                            radius: 22,
+                            child: Icon(item['icone'], color: item['cor'], size: 24),
+                          ),
+                          const Spacer(),
+                          Text(
+                            item['titulo'],
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            item['subtitulo'],
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(color: Colors.grey, fontSize: 11, height: 1.2),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
