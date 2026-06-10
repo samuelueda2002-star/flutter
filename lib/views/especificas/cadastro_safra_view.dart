@@ -15,13 +15,11 @@ class _CadastroSafraViewState extends State<CadastroSafraView> {
   final _statusController = TextEditingController();
   final _dataPlantioController = TextEditingController();
   
-  // Instanciação correta do controlador do Firestore alinhado
   final SafrasFirestoreController _safraController = SafrasFirestoreController();
   bool _isLoading = false;
 
   @override
   void dispose() {
-    // Libera a memória eliminando os controladores ao fechar a View
     _talhaoController.dispose();
     _culturaController.dispose();
     _areaController.dispose();
@@ -31,21 +29,17 @@ class _CadastroSafraViewState extends State<CadastroSafraView> {
   }
 
   void _salvarSafra() async {
-    // Validação preventiva para não enviar campos vazios
-    if (_talhaoController.text.trim().isEmpty || 
-        _culturaController.text.trim().isEmpty || 
-        _areaController.text.trim().isEmpty || 
-        _statusController.text.trim().isEmpty || 
+    if (_talhaoController.text.trim().isEmpty || _culturaController.text.trim().isEmpty || 
+        _areaController.text.trim().isEmpty || _statusController.text.trim().isEmpty || 
         _dataPlantioController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Por favor, preencha todos os campos.')),
+        const SnackBar(content: Text('Por favor, preencha todos os campos obrigatórios.')),
       );
       return;
     }
 
     setState(() => _isLoading = true);
 
-    // Conexão assíncrona com o controlador passando os dados digitados e tratados
     String? erro = await _safraController.adicionarSafra(
       talhao: _talhaoController.text.trim(),
       cultura: _culturaController.text.trim(),
@@ -57,23 +51,14 @@ class _CadastroSafraViewState extends State<CadastroSafraView> {
     if (!mounted) return;
     setState(() => _isLoading = false);
 
-    // RF003: Exibição de mensagens informativas de confirmação (Sucesso ou Falha)
     if (erro == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Safra inserida com sucesso no banco de dados!'), 
-          backgroundColor: Colors.green
-        ),
+        const SnackBar(content: Text('Safra inserida com sucesso no banco de dados!'), backgroundColor: Colors.green),
       );
-      Navigator.pop(context); // Retorna de forma segura à listagem
+      Navigator.pop(context);
     } else {
-      // RF004: Fornece o feedback adequado indicando o exato motivo da falha enviado pelo Controller
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Falha na inserção: $erro'), 
-          backgroundColor: Colors.red,
-          duration: const Duration(seconds: 5),
-        ),
+        SnackBar(content: Text(erro), backgroundColor: Colors.red),
       );
     }
   }

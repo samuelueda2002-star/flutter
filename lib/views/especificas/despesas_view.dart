@@ -10,10 +10,8 @@ class DespesasView extends StatefulWidget {
 }
 
 class _DespesasViewState extends State<DespesasView> {
-  // Instanciação do controlador do Firestore refatorado
   final DespesasFirestoreController _despesaController = DespesasFirestoreController();
 
-  // Controladores de formulário para capturar e validar as inserções de dados
   final _descricaoController = TextEditingController();
   final _valorController = TextEditingController();
   final _categoriaController = TextEditingController();
@@ -22,7 +20,6 @@ class _DespesasViewState extends State<DespesasView> {
 
   @override
   void dispose() {
-    // Elimina os controladores para evitar vazamentos de memória (Memory Leak)
     _descricaoController.dispose();
     _valorController.dispose();
     _categoriaController.dispose();
@@ -31,7 +28,6 @@ class _DespesasViewState extends State<DespesasView> {
     super.dispose();
   }
 
-  /// RF003: Diálogo interativo para preenchimento, validação e inserção de novas despesas
   void _abrirDialogoCadastro() {
     _descricaoController.clear();
     _valorController.clear();
@@ -70,7 +66,6 @@ class _DespesasViewState extends State<DespesasView> {
 
               Navigator.pop(context); // Fecha o modal de inserção
 
-              // Processa a inserção tipada via controlador assíncrono
               String? erro = await _despesaController.adicionarDespesa(
                 descricao: _descricaoController.text.trim(),
                 valor: double.tryParse(_valorController.text.trim()) ?? 0.0,
@@ -81,7 +76,6 @@ class _DespesasViewState extends State<DespesasView> {
 
               if (!mounted) return;
 
-              // RF003: Emissão de mensagem clara de confirmação (Sucesso ou Falha)
               if (erro == null) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('Despesa lançada com sucesso no Firestore!'), backgroundColor: Colors.green),
@@ -99,7 +93,6 @@ class _DespesasViewState extends State<DespesasView> {
     );
   }
 
-  /// RF004: Diálogo para atualização de informações com indicação clara do motivo de eventuais erros
   void _abrirDialogoEdicao(String docId, String descricaoAtual, double valorAtual) {
     final editarDescricaoController = TextEditingController(text: descricaoAtual);
     final editarValorController = TextEditingController(text: valorAtual.toString());
@@ -123,7 +116,6 @@ class _DespesasViewState extends State<DespesasView> {
 
               Navigator.pop(context); // Fecha o modal de edição
 
-              // Dispara a mutação de dados para o Firestore
               String? erro = await _despesaController.atualizarDespesaDados(docId, {
                 'descricao': editarDescricaoController.text.trim(),
                 'valor': double.tryParse(editarValorController.text.trim()) ?? 0.0,
@@ -131,7 +123,6 @@ class _DespesasViewState extends State<DespesasView> {
 
               if (!mounted) return;
 
-              // RF004: Fornece feedback adequado indicando o exato motivo da falha
               if (erro == null) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('Despesa atualizada com sucesso!'), backgroundColor: Colors.green),
@@ -164,7 +155,6 @@ class _DespesasViewState extends State<DespesasView> {
         foregroundColor: Colors.white
       ),
       body: StreamBuilder<QuerySnapshot>(
-        // RF003: Integração reativa e segura protegendo o acesso aos dados financeiros do utilizador
         stream: _despesaController.listarDespesasDoUsuario(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
@@ -218,7 +208,7 @@ class _DespesasViewState extends State<DespesasView> {
                     IconButton(
                       icon: const Icon(Icons.edit, color: Colors.orange),
                       tooltip: 'Editar Lançamento',
-                      onPressed: () => _abrirDialogoEdicao(docId, descricao, valor), // Ativação do RF004
+                      onPressed: () => _abrirDialogoEdicao(docId, descricao, valor), 
                     ),
                   ],
                 ),

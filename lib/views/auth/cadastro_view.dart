@@ -10,7 +10,6 @@ class CadastroView extends StatefulWidget {
 }
 
 class _CadastroViewState extends State<CadastroView> {
-  // Controladores dos campos de texto
   final _nomeController = TextEditingController();
   final _emailController = TextEditingController();
   final _telefoneController = TextEditingController();
@@ -20,7 +19,6 @@ class _CadastroViewState extends State<CadastroView> {
   final AuthController _authController = AuthController();
   bool _isLoading = false;
 
-  // Função auxiliar para exibir mensagens de erro na interface
   void _exibirMensagem(String mensagem, {bool ehErro = true}) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -31,7 +29,6 @@ class _CadastroViewState extends State<CadastroView> {
     );
   }
 
-  // Executa todas as validações locais antes de enviar ao Firebase
   bool _validarFormulario() {
   final nome = _nomeController.text.trim();
   final email = _emailController.text.trim();
@@ -44,15 +41,12 @@ class _CadastroViewState extends State<CadastroView> {
     return false;
   }
 
-  // Validação de E-mail
   final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
   if (!emailRegex.hasMatch(email)) {
     _exibirMensagem('Por favor, insira um e-mail válido.');
     return false;
   }
 
-  // REFAZENDO A VALIDAÇÃO DA SENHA SEGUNDO OS CRITÉRIOS DO REQUISITO:
-  // Exige: Mínimo 6 caracteres, 1 Letra Maiúscula, 1 Minúscula, 1 Número e 1 Caractere Especial (@$!%*?&)
   final senhaRegex = RegExp(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$');
   
   if (!senhaRegex.hasMatch(senha)) {
@@ -76,7 +70,6 @@ class _CadastroViewState extends State<CadastroView> {
 
     setState(() => _isLoading = true);
 
-    // Envia os dados para salvar no Firebase Auth e Firestore através do Controller
     String? erroFirebase = await _authController.registrar(
       nome: _nomeController.text.trim(),
       telefone: _telefoneController.text.trim(),
@@ -90,14 +83,12 @@ class _CadastroViewState extends State<CadastroView> {
     if (erroFirebase == null) {
       _exibirMensagem('Conta criada com sucesso!', ehErro: false);
       
-      // Após o preenchimento correto e validação, permite o acesso imediato à Home
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (context) => const HomeView()),
         (route) => false,
       );
     } else {
-      // Caso a validação do Firebase falhe (ex: e-mail já existente), exibe o erro retornado
       _exibirMensagem(erroFirebase);
     }
   }
@@ -200,7 +191,6 @@ class _CadastroViewState extends State<CadastroView> {
               ),
               const SizedBox(height: 32),
               
-              // Botão de Confirmação com Feedback de Progresso
               _isLoading
                   ? const CircularProgressIndicator(color: Colors.green)
                   : SizedBox(

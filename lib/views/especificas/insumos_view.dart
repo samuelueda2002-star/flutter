@@ -10,10 +10,8 @@ class InsumosView extends StatefulWidget {
 }
 
 class _InsumosViewState extends State<InsumosView> {
-  // Instanciação do controlador refatorado para o Firestore
   final InsumoFirestoreController _insumoController = InsumoFirestoreController();
 
-  // Controladores de texto para capturar os 5 campos no formulário de inserção
   final _nomeController = TextEditingController();
   final _quantidadeController = TextEditingController();
   final _unidadeController = TextEditingController();
@@ -22,7 +20,6 @@ class _InsumosViewState extends State<InsumosView> {
 
   @override
   void dispose() {
-    // Descarta os controladores para prevenir vazamento de memória (Memory Leak)
     _nomeController.dispose();
     _quantidadeController.dispose();
     _unidadeController.dispose();
@@ -31,7 +28,6 @@ class _InsumosViewState extends State<InsumosView> {
     super.dispose();
   }
 
-  /// RF003: Caixa de diálogo contendo o formulário para inserção e validação
   void _abrirDialogoCadastro() {
     _nomeController.clear();
     _quantidadeController.clear();
@@ -42,16 +38,16 @@ class _InsumosViewState extends State<InsumosView> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text("Cadastrar Novo Insumo"),
+        title: const Text("Novo Insumo"),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              TextField(controller: _nomeController, decoration: const InputDecoration(labelText: 'Nome do Insumo (Ex: NPK)')),
+              TextField(controller: _nomeController, decoration: const InputDecoration(labelText: 'Nome do Insumo')),
               TextField(controller: _quantidadeController, decoration: const InputDecoration(labelText: 'Quantidade Inicial'), keyboardType: TextInputType.number),
-              TextField(controller: _unidadeController, decoration: const InputDecoration(labelText: 'Unidade de Medida (Ex: kg, saca)')),
-              TextField(controller: _categoriaController, decoration: const InputDecoration(labelText: 'Categoria (Ex: Fertilizante)')),
-              TextField(controller: _fornecedorController, decoration: const InputDecoration(labelText: 'Fornecedor Coletado')),
+              TextField(controller: _unidadeController, decoration: const InputDecoration(labelText: 'Unidade (ex: kg, sacas)')),
+              TextField(controller: _categoriaController, decoration: const InputDecoration(labelText: 'Categoria')),
+              TextField(controller: _fornecedorController, decoration: const InputDecoration(labelText: 'Fornecedor')),
             ],
           ),
         ),
@@ -59,18 +55,9 @@ class _InsumosViewState extends State<InsumosView> {
           TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancelar")),
           ElevatedButton(
             onPressed: () async {
-              if (_nomeController.text.isEmpty || _quantidadeController.text.isEmpty ||
-                  _unidadeController.text.isEmpty || _categoriaController.text.isEmpty ||
-                  _fornecedorController.text.isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Por favor, preencha todos os campos obrigatórios.')),
-                );
-                return;
-              }
+              if (_nomeController.text.isEmpty || _quantidadeController.text.isEmpty || _unidadeController.text.isEmpty) return;
 
-              Navigator.pop(context); // Fecha a janela do formulário
-
-              // Executa a inserção no banco Firestore
+              Navigator.pop(context);
               String? erro = await _insumoController.adicionarInsumo(
                 nome: _nomeController.text.trim(),
                 quantidade: double.tryParse(_quantidadeController.text.trim()) ?? 0.0,
@@ -80,16 +67,8 @@ class _InsumosViewState extends State<InsumosView> {
               );
 
               if (!mounted) return;
-
-              // RF003: Emite feedback visual imediato e claro de confirmação ao usuário
               if (erro == null) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Insumo registrado com sucesso no Firestore!'), backgroundColor: Colors.green),
-                );
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Erro ao salvar insumo: $erro'), backgroundColor: Colors.red),
-                );
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Insumo adicionado com sucesso!'), backgroundColor: Colors.green));
               }
             },
             child: const Text("Salvar"),
@@ -99,55 +78,33 @@ class _InsumosViewState extends State<InsumosView> {
     );
   }
 
-  /// RF004: Caixa de diálogo para alteração de dados com exposição clara do motivo de falhas
-  void _abrirDialogoAtualizacao(String docId, String nomeInsumo, double quantidadeAtual) {
-    final editarQuantidadeController = TextEditingController(text: quantidadeAtual.toString());
+  void _abrirDialogoAtualizacao(String docId, String nome, double qtdAtual) {
+    final editarQtdController = TextEditingController(text: qtdAtual.toString());
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text("Ajustar Estoque: $nomeInsumo"),
-        content: TextField(
-          controller: editarQuantidadeController,
-          decoration: const InputDecoration(labelText: 'Quantidade em Estoque Atualizada'),
-          keyboardType: TextInputType.number,
-        ),
+        title: Text("Editar Estoque: $nome"),
+        content: TextField(controller: editarQtdController, decoration: const InputDecoration(labelText: 'Nova Quantidade'), keyboardType: TextInputType.number),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancelar")),
           ElevatedButton(
             onPressed: () async {
-              double? novaQtd = double.tryParse(editarQuantidadeController.text.trim());
-              if (novaQtd == null) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Por favor, insira um valor numérico válido.')),
-                );
-                return;
-              }
+              double? novaQtd = double.tryParse(editarQtdController.text.trim());
+              if (novaQtd == null) return;
 
-              Navigator.pop(context); // Fecha a janela de edição
-
-              // Invoca o método de atualização do controlador
-              String? erro = await _insumoController.atualizarQuantidadeInsumo(docId, novaQtd);
-
+              Navigator.pop(context);
+              String? erro = await _insumoController.atualizarEstoqueInsumo(docId, novaQtd);
+              
               if (!mounted) return;
-
-              // RF004: Feedback adequado indicando o exato motivo da falha se houver
               if (erro == null) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Estoque atualizado com sucesso!'), backgroundColor: Colors.green),
-                );
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Estoque atualizado!'), backgroundColor: Colors.green));
               } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Não foi possível atualizar: $erro'), 
-                    backgroundColor: Colors.red, 
-                    duration: const Duration(seconds: 5)
-                  ),
-                );
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erro: $erro'), backgroundColor: Colors.red));
               }
             },
             child: const Text("Atualizar"),
-          ),
+          )
         ],
       ),
     );
@@ -158,52 +115,41 @@ class _InsumosViewState extends State<InsumosView> {
     return Scaffold(
       appBar: AppBar(title: const Text("Estoque de Insumos")),
       body: StreamBuilder<QuerySnapshot>(
-        // RF003: Consumo reativo e seguro direto da stream filtrada do banco de dados
+        // RF005: Segunda coleção a utilizar StreamBuilder + ListView de forma isolada e síncrona
         stream: _insumoController.listarInsumosDoUsuario(),
         builder: (context, snapshot) {
-          if (snapshot.hasError) {
-            return Center(child: Text('Erro crítico ao ler banco de dados: ${snapshot.error}'));
-          }
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
+          if (snapshot.hasError) return Center(child: Text('Erro: ${snapshot.error}'));
+          if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator());
 
-          final listagemDocs = snapshot.data?.docs ?? [];
+          final docs = snapshot.data?.docs ?? [];
+          if (docs.isEmpty) return const Center(child: Text('Nenhum insumo em estoque.'));
 
-          if (listagemDocs.isEmpty) {
-            return const Center(child: Text('Nenhum insumo localizado em seu estoque físico.'));
-          }
-
-          return ListView.separated(
-            itemCount: listagemDocs.length,
-            separatorBuilder: (context, index) => const Divider(),
+          return ListView.builder(
+            padding: const EdgeInsets.all(16),
+            itemCount: docs.length,
             itemBuilder: (context, index) {
-              final Map<String, dynamic> dados = listagemDocs[index].data() as Map<String, dynamic>;
-              final String docId = listagemDocs[index].id;
+              final data = docs[index].data() as Map<String, dynamic>;
+              final String id = docs[index].id;
 
-              final String nome = dados['nome'] ?? 'Insumo Indefinido';
-              final double quantidade = (dados['quantidade'] ?? 0.0).toDouble();
-              final String unidade = dados['unidade'] ?? '';
-              final String categoria = dados['categoria'] ?? 'Geral';
+              final String nome = data['nome'] ?? '';
+              final double qtd = (data['quantidade'] ?? 0.0).toDouble();
+              final String unidade = data['unidade'] ?? '';
 
-              return ListTile(
-                leading: const Icon(Icons.inventory_2, color: Color(0xFF0A747C)),
-                title: Text(nome),
-                subtitle: Text("Categoria: $categoria"),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      "$quantidade $unidade",
-                      style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey, fontSize: 16),
-                    ),
-                    const SizedBox(width: 10),
-                    IconButton(
-                      icon: const Icon(Icons.edit, color: Colors.orange),
-                      tooltip: 'Editar Estoque',
-                      onPressed: () => _abrirDialogoAtualizacao(docId, nome, quantidade), // Gatilho do RF004
-                    ),
-                  ],
+              return Card(
+                child: ListTile(
+                  leading: const Icon(Icons.inventory_2, color: Colors.blueGrey),
+                  title: Text(nome, style: const TextStyle(fontWeight: FontWeight.bold)),
+                  subtitle: Text("Categoria: ${data['categoria'] ?? 'Geral'}"),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text("$qtd $unidade", style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+                      IconButton(
+                        icon: const Icon(Icons.edit, color: Colors.orange),
+                        onPressed: () => _abrirDialogoAtualizacao(id, nome, qtd),
+                      )
+                    ],
+                  ),
                 ),
               );
             },
@@ -211,9 +157,8 @@ class _InsumosViewState extends State<InsumosView> {
         },
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _abrirDialogoCadastro, // Gatilho do RF003
-        backgroundColor: const Color(0xFF0A747C),
-        child: const Icon(Icons.add, color: Colors.white),
+        onPressed: _abrirDialogoCadastro,
+        child: const Icon(Icons.add),
       ),
     );
   }

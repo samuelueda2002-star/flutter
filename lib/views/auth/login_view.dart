@@ -55,7 +55,6 @@ class _LoginViewState extends State<LoginView> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Ícone nativo de Agricultura no lugar do logotipo do Flutter
             const Icon(
               Icons.agriculture,
               size: 90,

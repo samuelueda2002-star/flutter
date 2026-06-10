@@ -10,10 +10,8 @@ class ColheitaView extends StatefulWidget {
 }
 
 class _ColheitaViewState extends State<ColheitaView> {
-  // Instanciação do controlador do Firestore refatorado
   final ColheitasFirestoreController _colheitaController = ColheitasFirestoreController();
-
-  // Controladores de formulário para capturar e validar as inserções de dados
+  
   final _talhaoController = TextEditingController();
   final _quantidadeController = TextEditingController();
   final _unidadeController = TextEditingController();
@@ -23,7 +21,6 @@ class _ColheitaViewState extends State<ColheitaView> {
 
   @override
   void dispose() {
-    // Elimina os controladores ao fechar a tela para evitar vazamentos de memória (Memory Leak)
     _talhaoController.dispose();
     _quantidadeController.dispose();
     _unidadeController.dispose();
@@ -33,7 +30,6 @@ class _ColheitaViewState extends State<ColheitaView> {
     super.dispose();
   }
 
-  /// RF003: Diálogo contendo o formulário completo para inserção e validação
   void _abrirDialogoCadastro() {
     _talhaoController.clear();
     _quantidadeController.clear();
@@ -74,7 +70,6 @@ class _ColheitaViewState extends State<ColheitaView> {
 
               Navigator.pop(context); // Fecha a janela do formulário
 
-              // Executa a operação assíncrona gravando os dados reais no banco
               String? erro = await _colheitaController.adicionarColheita(
                 talhao: _talhaoController.text.trim(),
                 quantidadeColhida: double.tryParse(_quantidadeController.text.trim()) ?? 0.0,
@@ -86,7 +81,6 @@ class _ColheitaViewState extends State<ColheitaView> {
 
               if (!mounted) return;
 
-              // RF003: Fornece mensagem informativa de confirmação na tela
               if (erro == null) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('Colheita registrada com sucesso no banco de dados!'), backgroundColor: Colors.green),
@@ -104,7 +98,6 @@ class _ColheitaViewState extends State<ColheitaView> {
     );
   }
 
-  /// RF004: Diálogo para atualização de dados com exibição transparente do motivo da falha
   void _abrirDialogoEdicao(String docId, String talhaoNome, double qtdAtual) {
     final editarQuantidadeController = TextEditingController(text: qtdAtual.toString());
 
@@ -129,16 +122,14 @@ class _ColheitaViewState extends State<ColheitaView> {
                 return;
               }
 
-              Navigator.pop(context); // Fecha o modal de alteração
+              Navigator.pop(context); 
 
-              // Executa a modificação enviando o mapa de dados
               String? erro = await _colheitaController.atualizarColheitaDados(docId, {
                 'quantidadeColhida': novaQtd,
               });
 
               if (!mounted) return;
 
-              // RF004: Feedback adequado exibindo o motivo detalhado de qualquer falha
               if (erro == null) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('Volume de colheita atualizado com sucesso!'), backgroundColor: Colors.green),
@@ -171,7 +162,6 @@ class _ColheitaViewState extends State<ColheitaView> {
         foregroundColor: Colors.white
       ),
       body: StreamBuilder<QuerySnapshot>(
-        // RF003: Integração reativa e segura protegendo o acesso aos dados rurais do usuário
         stream: _colheitaController.listarColheitasDoUsuario(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
@@ -226,7 +216,7 @@ class _ColheitaViewState extends State<ColheitaView> {
                     IconButton(
                       icon: const Icon(Icons.edit, color: Colors.orange),
                       tooltip: 'Modificar Quantidade',
-                      onPressed: () => _abrirDialogoEdicao(docId, talhao, quantidadeColhida), // Ativação do RF004
+                      onPressed: () => _abrirDialogoEdicao(docId, talhao, quantidadeColhida),
                     ),
                   ],
                 ),

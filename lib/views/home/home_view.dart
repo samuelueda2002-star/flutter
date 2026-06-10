@@ -4,7 +4,7 @@ import 'package:flutter_application_1/views/especificas/cadastro_propriedade_vie
 import '../auth/login_view.dart';
 import '../especificas/safras_list_view.dart';
 import '../especificas/insumos_view.dart';
-import '../especificas/propriedade_view.dart'; // Nome do arquivo mapeado no projeto
+import '../especificas/propriedade_view.dart'; 
 import '../especificas/despesas_view.dart';
 import '../especificas/colheita_view.dart';
 import '../especificas/mercado_view.dart';
@@ -20,7 +20,6 @@ class HomeView extends StatefulWidget {
 class _HomeViewState extends State<HomeView> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  /// RF001: Realiza o encerramento da sessão com feedback e redirecionamento seguro
   void _efetuarLogout() async {
     showDialog(
       context: context,
@@ -40,7 +39,6 @@ class _HomeViewState extends State<HomeView> {
               
               if (!mounted) return;
               
-              // Remove todo o histórico de telas e joga o usuário para o Login
               Navigator.pushAndRemoveUntil(
                 context,
                 MaterialPageRoute(builder: (context) => const LoginView()),
@@ -59,14 +57,13 @@ class _HomeViewState extends State<HomeView> {
     const Color primaryColor = Color(0xFF0A747C);
     final String userEmail = _auth.currentUser?.email ?? 'Produtor Rural';
 
-    // Lista de módulos para renderizar os cards dinamicamente no painel
     final List<Map<String, dynamic>> modulosHub = [
       {
         'titulo': 'Safras e Culturas',
         'subtitulo': 'Gerenciar ciclos e talhões',
         'icone': Icons.grass,
         'cor': Colors.green,
-        'tela': const SafrasListView(), // Aponta para a listagem conectada ao Firestore
+        'tela': const SafrasListView(), 
       },
       {
         'titulo': 'Estoque de Insumos',
@@ -80,7 +77,7 @@ class _HomeViewState extends State<HomeView> {
         'subtitulo': 'Fazendas e glebas registradas',
         'icone': Icons.landscape,
         'cor': Colors.brown,
-        'tela': const PropriedadesView(),// Aponta para a PropriedadesView adaptada
+        'tela': const PropriedadesView(),
       },
       {
         'titulo': 'Fluxo de Despesas',
@@ -101,7 +98,7 @@ class _HomeViewState extends State<HomeView> {
         'subtitulo': 'Cotações cambiais em tempo real',
         'icone': Icons.analytics,
         'cor': Colors.teal,
-        'tela': const MercadoView(), // Consumo da API Pública (RF007)
+        'tela': const MercadoView(),
       },
     ];
 
@@ -129,7 +126,6 @@ class _HomeViewState extends State<HomeView> {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Banner de Boas-vindas contendo as credenciais da sessão ativa
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(20),
@@ -161,7 +157,6 @@ class _HomeViewState extends State<HomeView> {
             ),
           ),
           
-          // Grade Modular Interativa (Grid do Hub Principal)
           Expanded(
             child: GridView.builder(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
