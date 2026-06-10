@@ -7,14 +7,13 @@ class SafrasFirestoreController {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   /// RF003: Inserção de dados eficiente no Firebase Firestore.
-  /// Composta por mais de 5 campos tipados apropriadamente.
-  /// Retorna 'null' se for bem-sucedido ou a String com o motivo do erro se falhar.
+  /// Salva os 5 campos vindos do formulário + 2 campos de metadados estruturados.
   Future<String?> adicionarSafra({
     required String talhao,
     required String cultura,
-    required String status,
     required double area,
-    required String observacoes,
+    required String status,
+    required String dataPlantio,
   }) async {
     try {
       final User? user = _auth.currentUser;
@@ -27,12 +26,12 @@ class SafrasFirestoreController {
         'userId': uid,               // Campo 1: Identificador de Segurança
         'talhao': talhao,             // Campo 2: String
         'cultura': cultura,           // Campo 3: String
-        'status': status,             // Campo 4: String
-        'area': area,                 // Campo 5: Double (Numérico apropriado)
-        'observacoes': observacoes,   // Campo 6: String
-        'dataCriacao': FieldValue.serverTimestamp(), // Campo 7: Timestamp do servidor
+        'area': area,                 // Campo 4: Double (Tipo numérico apropriado)
+        'status': status,             // Campo 5: String
+        'dataPlantio': dataPlantio,   // Campo 6: String
+        'dataCriacao': FieldValue.serverTimestamp(), // Campo 7: Timestamp nativo
       });
-      return null; // Retornar nulo significa sucesso total
+      return null; // Retornar nulo significa que a inserção foi um SUCESSO
     } on FirebaseException catch (e) {
       // RF003/RF004: Captura o código e o motivo exato enviado pelo servidor Firebase
       return 'Erro no banco de dados [${e.code}]: ${e.message}';
@@ -70,7 +69,7 @@ class SafrasFirestoreController {
     }
     String uid = user.uid;
     
-    // Filtro de isolamento de segurança reativado e corrigido usando a sintaxe nativa 'isEqualTo'
+    // Filtro de isolamento de segurança ativado usando a sintaxe nativa 'isEqualTo'
     return _firestore
         .collection('safras')
         .where('userId', isEqualTo: uid)

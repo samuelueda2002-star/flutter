@@ -116,7 +116,7 @@ class _MercadoViewState extends State<MercadoView> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.between,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Expanded(
                             child: Text(
@@ -149,7 +149,7 @@ class _MercadoViewState extends State<MercadoView> {
                       ),
                       const Divider(height: 24),
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.around,
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: [
                           Column(
                             children: [
